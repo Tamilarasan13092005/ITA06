@@ -1,0 +1,53 @@
+def consistent(h, x):
+    return all(h[i] == x[i] or h[i] == '?' for i in range(len(h)))
+
+def generalize(S, x):
+    return ['?' if S[i] != x[i] else S[i] for i in range(len(S))]
+
+def specialize(g, x, domains):
+    specs = []
+    for i in range(len(g)):
+        if g[i] == '?':
+            for val in domains[i]:
+                if val != x[i]:
+                    new = g[:]
+                    new[i] = val
+                    specs.append(new)
+    return specs
+
+def candidate_elimination(X, y, domains):
+    S = X[y.index("Yes")][:]
+    G = [['?' for _ in S]]
+    for x, label in zip(X, y):
+        if label == "Yes":
+            G = [g for g in G if consistent(g, x)]
+            S = generalize(S, x)
+        else:
+            G_new = []
+            for g in G:
+                if consistent(g, x):
+                    G_new += specialize(g, x, domains)
+                else:
+                    G_new.append(g)
+            G = [g for g in G_new if consistent(g, S)]
+    return S, G
+
+# Sample training data (no CSV)
+X = [
+    ['Sunny', 'Warm', 'Normal', 'Strong'],
+    ['Sunny', 'Warm', 'High', 'Strong'],
+    ['Rainy', 'Cold', 'High', 'Strong'],
+    ['Sunny', 'Warm', 'High', 'Weak']
+]
+y = ['Yes', 'Yes', 'No', 'Yes']
+
+domains = [['Sunny', 'Rainy'], ['Warm', 'Cold'], ['Normal', 'High'], ['Strong', 'Weak']]
+
+# Run the algorithm
+S, G = candidate_elimination(X, y, domains)
+
+# Print results
+print("Most Specific Hypothesis S:", S)
+print("Most General Hypotheses G:")
+for g in G:
+    print(g)
