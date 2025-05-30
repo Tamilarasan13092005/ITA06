@@ -1,0 +1,65 @@
+import math
+import random
+
+# Activation Function and its derivative
+def sigmoid(x): return 1 / (1 + math.exp(-x))
+def sigmoid_deriv(x): return x * (1 - x)
+
+# Initialize weights randomly
+def init_weights(rows, cols):
+    return [[random.uniform(-1, 1) for _ in range(cols)] for _ in range(rows)]
+
+# XOR Dataset
+X = [[0,0], [0,1], [1,0], [1,1]]
+y = [[0], [1], [1], [0]]
+
+# Parameters
+input_size = 2
+hidden_size = 2
+output_size = 1
+lr = 0.5
+epochs = 10000
+
+# Initialize weights and biases
+w1 = init_weights(input_size, hidden_size)
+w2 = init_weights(hidden_size, output_size)
+b1 = [random.uniform(-1,1) for _ in range(hidden_size)]
+b2 = [random.uniform(-1,1) for _ in range(output_size)]
+
+# Training
+for epoch in range(epochs):
+    for i in range(len(X)):
+        # --- Forward Pass ---
+        input_layer = X[i]
+        hidden_input = [sum(x*w for x,w in zip(input_layer, col)) + b1[j] for j, col in enumerate(zip(*w1))]
+        hidden_output = [sigmoid(x) for x in hidden_input]
+
+        final_input = [sum(h*w for h,w in zip(hidden_output, col)) + b2[k] for k, col in enumerate(zip(*w2))]
+        final_output = [sigmoid(x) for x in final_input]
+
+        # --- Backward Pass ---
+        error = [y[i][j] - final_output[j] for j in range(output_size)]
+        d_output = [error[j] * sigmoid_deriv(final_output[j]) for j in range(output_size)]
+
+        error_hidden = [sum(w2[h][j] * d_output[j] for j in range(output_size)) for h in range(hidden_size)]
+        d_hidden = [error_hidden[h] * sigmoid_deriv(hidden_output[h]) for h in range(hidden_size)]
+
+        # --- Update weights and biases ---
+        for j in range(hidden_size):
+            for k in range(output_size):
+                w2[j][k] += lr * d_output[k] * hidden_output[j]
+        for j in range(output_size):
+            b2[j] += lr * d_output[j]
+
+        for i_in in range(input_size):
+            for j in range(hidden_size):
+                w1[i_in][j] += lr * d_hidden[j] * input_layer[i_in]
+        for j in range(hidden_size):
+            b1[j] += lr * d_hidden[j]
+
+# Testing
+print("Trained XOR ANN Output:")
+for x in X:
+    hidden = [sigmoid(sum(x[i]*w1[i][j] for i in range(input_size)) + b1[j]) for j in range(hidden_size)]
+    output = [sigmoid(sum(hidden[i]*w2[i][j] for i in range(hidden_size)) + b2[j]) for j in range(output_size)]
+    print(f"Input: {x} => Output: {[round(o, 3) for o in output]}")
