@@ -1,0 +1,45 @@
+# Simple Linear Regression (univariate) from scratch
+
+# Sample dataset: (x, y)
+data = [
+    (1, 2),
+    (2, 3),
+    (3, 4),
+    (4, 5),
+    (5, 7)
+]
+
+# Separate features and targets
+X = [point[0] for point in data]
+y = [point[1] for point in data]
+
+# Hyperparameters
+learning_rate = 0.01
+epochs = 1000
+
+# Initialize parameters
+m = 0.0  # slope
+b = 0.0  # intercept
+n = len(X)
+
+# Gradient Descent
+for _ in range(epochs):
+    y_pred = [m * x + b for x in X]
+    error = [y_pred[i] - y[i] for i in range(n)]
+
+    # Calculate gradients
+    dm = (2/n) * sum(error[i] * X[i] for i in range(n))
+    db = (2/n) * sum(error)
+
+    # Update parameters
+    m -= learning_rate * dm
+    b -= learning_rate * db
+
+# After training
+print(f"Trained slope (m): {m:.3f}")
+print(f"Trained intercept (b): {b:.3f}")
+
+# Make predictions
+print("Predictions:")
+for x in X:
+    print(f"x={x} => y_pred={m*x + b:.3f}")
