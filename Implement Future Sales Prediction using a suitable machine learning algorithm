@@ -1,0 +1,30 @@
+# Sample (Month, Sales) data
+data = [
+    (1, 200),
+    (2, 220),
+    (3, 250),
+    (4, 270),
+    (5, 300),
+    (6, 320)
+]
+
+# Separate features and labels
+X = [x for x, y in data]
+y = [y for x, y in data]
+
+# Compute means
+x_mean = sum(X) / len(X)
+y_mean = sum(y) / len(y)
+
+# Compute slope (m) and intercept (b) for y = mx + b
+numerator = sum((X[i] - x_mean) * (y[i] - y_mean) for i in range(len(X)))
+denominator = sum((X[i] - x_mean) ** 2 for i in range(len(X)))
+m = numerator / denominator
+b = y_mean - m * x_mean
+
+print(f"Linear Regression Model: y = {m:.2f}x + {b:.2f}")
+
+# Predict future sales for month 7 and 8
+for future_month in [7, 8]:
+    predicted_sales = m * future_month + b
+    print(f"Predicted sales for month {future_month}: {predicted_sales:.2f}")
