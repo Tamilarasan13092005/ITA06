@@ -1,0 +1,36 @@
+import math
+from collections import Counter
+
+# Sample dataset: [feature1, feature2, ..., label]
+dataset = [
+    [2, 4, 'A'],
+    [4, 2, 'A'],
+    [4, 4, 'B'],
+    [6, 6, 'B'],
+    [6, 2, 'A'],
+    [8, 4, 'B']
+]
+
+# Euclidean distance
+def distance(p1, p2):
+    return math.sqrt(sum((a - b) ** 2 for a, b in zip(p1, p2)))
+
+# KNN algorithm
+def knn(data, query, k):
+    neighbors = []
+    for row in data:
+        dist = distance(query, row[:-1])
+        neighbors.append((dist, row[-1]))
+    
+    neighbors.sort(key=lambda x: x[0])
+    k_nearest = [label for _, label in neighbors[:k]]
+    most_common = Counter(k_nearest).most_common(1)[0][0]
+    return most_common
+
+# Example: classify a new point
+query_point = [5, 3]
+k = 3
+result = knn(dataset, query_point, k)
+
+print(f"Query Point: {query_point}")
+print(f"Predicted Class with k={k}: {result}")
