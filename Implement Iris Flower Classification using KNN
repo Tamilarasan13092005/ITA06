@@ -1,0 +1,43 @@
+import numpy as np
+from math import sqrt
+
+# Iris dataset (simplified) - features: sepal length, sepal width, petal length, petal width
+# Labels: 0=setosa, 1=versicolor, 2=virginica
+# We'll use a small subset for demonstration
+
+data = np.array([
+    [5.1, 3.5, 1.4, 0.2, 0],  # setosa
+    [4.9, 3.0, 1.4, 0.2, 0],
+    [7.0, 3.2, 4.7, 1.4, 1],  # versicolor
+    [6.4, 3.2, 4.5, 1.5, 1],
+    [6.3, 3.3, 6.0, 2.5, 2],  # virginica
+    [5.8, 2.7, 5.1, 1.9, 2]
+])
+
+# Split into features and labels
+X = data[:, :-1]
+y = data[:, -1].astype(int)
+
+def euclidean_distance(x1, x2):
+    return sqrt(np.sum((x1 - x2) ** 2))
+
+def knn_predict(X_train, y_train, x_test, k=3):
+    distances = []
+    for i in range(len(X_train)):
+        dist = euclidean_distance(X_train[i], x_test)
+        distances.append((dist, y_train[i]))
+    distances.sort(key=lambda x: x[0])
+    
+    neighbors = distances[:k]
+    # Majority vote
+    classes = [neighbor[1] for neighbor in neighbors]
+    prediction = max(set(classes), key=classes.count)
+    return prediction
+
+# Test with a new sample
+test_sample = np.array([6.0, 3.0, 4.8, 1.8])
+
+predicted_class = knn_predict(X, y, test_sample, k=3)
+class_names = {0: "Setosa", 1: "Versicolor", 2: "Virginica"}
+
+print(f"Predicted class for sample {test_sample}: {class_names[predicted_class]}")
