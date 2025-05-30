@@ -1,0 +1,86 @@
+import math
+from collections import defaultdict, Counter
+
+# Sample Dataset: [feature1, feature2, ..., label]
+# Format: [height, weight, label]
+dataset = [
+    [180, 80, 'Male'],
+    [167, 65, 'Male'],
+    [160, 50, 'Female'],
+    [150, 45, 'Female'],
+    [170, 70, 'Male'],
+    [155, 48, 'Female']
+]
+
+# Split into features and labels
+X = [row[:-1] for row in dataset]
+y = [row[-1] for row in dataset]
+
+# Split manually into train and test
+train_X = X[:4]
+train_y = y[:4]
+test_X = X[4:]
+test_y = y[4:]
+
+# Group data by class
+def summarize_by_class(X, y):
+    data = defaultdict(list)
+    for xi, yi in zip(X, y):
+        data[yi].append(xi)
+    
+    summaries = {}
+    for label, features in data.items():
+        # mean and std per feature
+        summaries[label] = [(sum(f) / len(f), stddev(f)) for f in zip(*features)]
+    return summaries
+
+# Standard deviation function
+def stddev(numbers):
+    avg = sum(numbers) / len(numbers)
+    variance = sum((x - avg) ** 2 for x in numbers) / len(numbers)
+    return math.sqrt(variance)
+
+# Gaussian probability density
+def gaussian(x, mean, stdev):
+    if stdev == 0: return 1
+    exponent = math.exp(-((x - mean) ** 2) / (2 * stdev ** 2))
+    return (1 / (math.sqrt(2 * math.pi) * stdev)) * exponent
+
+# Predict for one sample
+def predict(summaries, sample):
+    probs = {}
+    for label, feature_summaries in summaries.items():
+        probs[label] = 1
+        for i in range(len(sample)):
+            mean, stdev = feature_summaries[i]
+            probs[label] *= gaussian(sample[i], mean, stdev)
+    return max(probs, key=probs.get)
+
+# Full prediction
+summaries = summarize_by_class(train_X, train_y)
+predictions = [predict(summaries, x) for x in test_X]
+
+# Confusion Matrix
+def confusion_matrix(actual, predicted):
+    labels = sorted(set(actual + predicted))
+    matrix = [[0]*len(labels) for _ in labels]
+    label_index = {label: idx for idx, label in enumerate(labels)}
+    for a, p in zip(actual, predicted):
+        matrix[label_index[a]][label_index[p]] += 1
+    return labels, matrix
+
+# Accuracy
+correct = sum(1 for a, p in zip(test_y, predictions) if a == p)
+accuracy = correct / len(test_y)
+
+# Output
+print("Test Samples:", test_X)
+print("Predicted   :", predictions)
+print("Actual      :", test_y)
+print(f"\nAccuracy: {accuracy*100:.2f}%")
+
+labels, matrix = confusion_matrix(test_y, predictions)
+print("\nConfusion Matrix:")
+print("      " + "  ".join(f"{l:>6}" for l in labels))
+for i, row in enumerate(matrix):
+    print(f"{labels[i]:>6} " + "  ".join(f"{val:>6}" for val in row))
