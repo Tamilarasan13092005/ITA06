@@ -1,0 +1,57 @@
+from collections import defaultdict
+
+# Dataset
+dataset = [
+    ['Young', 'High', 'No', 'Fair', 'No'],
+    ['Young', 'High', 'No', 'Excellent', 'No'],
+    ['Middle', 'High', 'No', 'Fair', 'Yes'],
+    ['Senior', 'Medium', 'No', 'Fair', 'Yes'],
+    ['Senior', 'Low', 'Yes', 'Fair', 'Yes'],
+    ['Senior', 'Low', 'Yes', 'Excellent', 'No'],
+    ['Middle', 'Low', 'Yes', 'Excellent', 'Yes'],
+    ['Young', 'Medium', 'No', 'Fair', 'No'],
+    ['Young', 'Low', 'Yes', 'Fair', 'Yes'],
+    ['Senior', 'Medium', 'Yes', 'Fair', 'Yes'],
+    ['Young', 'Medium', 'Yes', 'Excellent', 'Yes'],
+    ['Middle', 'Medium', 'No', 'Excellent', 'Yes'],
+    ['Middle', 'High', 'Yes', 'Fair', 'Yes'],
+    ['Senior', 'Medium', 'No', 'Excellent', 'No'],
+]
+
+# Split features and labels
+X = [row[:-1] for row in dataset]
+y = [row[-1] for row in dataset]
+features = list(zip(*X))  # column-wise features
+
+# Get unique values for each feature
+feature_values = [set(f) for f in features]
+labels = set(y)
+
+# Calculate prior probabilities and conditional probabilities
+label_counts = defaultdict(int)
+cond_probs = defaultdict(int)  # ✅ FIXED HERE
+
+for xi, label in zip(X, y):
+    label_counts[label] += 1
+    for i, value in enumerate(xi):
+        cond_probs[(i, value, label)] += 1  # ✅ WORKS NOW
+
+total = len(y)
+
+# Prediction function
+def predict(sample):
+    probs = {}
+    for label in labels:
+        prob = label_counts[label] / total
+        for i, value in enumerate(sample):
+            count = cond_probs[(i, value, label)]
+            prob *= (count + 1) / (label_counts[label] + len(feature_values[i]))  # Laplace smoothing
+        probs[label] = prob
+    return max(probs, key=probs.get)
+
+# Test sample: ['Young', 'Medium', 'Yes', 'Fair']
+test = ['Young', 'Medium', 'Yes', 'Fair']
+result = predict(test)
+
+print("Test Sample:", test)
+print("Predicted Loan Approval:", result)
