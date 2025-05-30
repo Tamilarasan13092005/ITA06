@@ -1,0 +1,30 @@
+# Sample dataset: [RAM, ROM, Battery], Price
+data = [
+    [4, 64, 4000, 12000],
+    [6, 128, 4500, 18000],
+    [8, 128, 5000, 22000],
+    [3, 32, 3000, 8000],
+    [2, 16, 2500, 5000],
+    [12, 256, 6000, 30000]
+]
+
+X = [d[:-1] for d in data]
+y = [d[-1] for d in data]
+
+# Simple Linear Regression using Normal Equation
+def predict_price(new_features):
+    import numpy as np
+    X_mat = np.array([[1] + x for x in X])  # Add intercept
+    y_vec = np.array(y)
+
+    # Calculate theta = (X'X)^-1 X'y
+    theta = np.linalg.inv(X_mat.T @ X_mat) @ X_mat.T @ y_vec
+
+    new_x = [1] + new_features
+    prediction = sum(t * x for t, x in zip(theta, new_x))
+    return prediction
+
+# Predict price for a new mobile with 6GB RAM, 128GB ROM, 5000mAh battery
+test_features = [6, 128, 5000]
+predicted = predict_price(test_features)
+print(f"Predicted Price for Mobile with features {test_features}: ₹{int(predicted)}")
