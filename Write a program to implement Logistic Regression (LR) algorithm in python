@@ -1,0 +1,62 @@
+import math
+
+# Sigmoid function
+def sigmoid(z):
+    return 1 / (1 + math.exp(-z))
+
+# Predict probability for one sample
+def predict_prob(weights, bias, x):
+    z = sum(w * xi for w, xi in zip(weights, x)) + bias
+    return sigmoid(z)
+
+# Train logistic regression using gradient descent
+def train(X, y, lr=0.1, epochs=1000):
+    n_features = len(X[0])
+    weights = [0.0] * n_features
+    bias = 0.0
+
+    for _ in range(epochs):
+        dw = [0.0] * n_features
+        db = 0.0
+        for xi, yi in zip(X, y):
+            y_pred = predict_prob(weights, bias, xi)
+            error = y_pred - yi
+            for j in range(n_features):
+                dw[j] += error * xi[j]
+            db += error
+        
+        # Update weights and bias
+        m = len(X)
+        weights = [w - lr * (dw[j]/m) for j, w in enumerate(weights)]
+        bias -= lr * (db/m)
+
+    return weights, bias
+
+# Predict class (0 or 1) based on threshold 0.5
+def predict(weights, bias, X):
+    preds = []
+    for x in X:
+        prob = predict_prob(weights, bias, x)
+        preds.append(1 if prob >= 0.5 else 0)
+    return preds
+
+# Sample dataset: AND logic gate
+X = [
+    [0, 0],
+    [0, 1],
+    [1, 0],
+    [1, 1]
+]
+
+y = [0, 0, 0, 1]  # AND output
+
+# Train model
+weights, bias = train(X, y, lr=0.1, epochs=1000)
+
+# Predictions
+predictions = predict(weights, bias, X)
+
+print("Weights:", weights)
+print("Bias:", bias)
+print("Predictions:", predictions)
+print("Actual labels:", y)
