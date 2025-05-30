@@ -1,0 +1,75 @@
+import numpy as np
+
+# Sigmoid function
+def sigmoid(z):
+    return 1 / (1 + np.exp(-z))
+
+# Predict probabilities
+def predict_prob(X, weights, bias):
+    return sigmoid(np.dot(X, weights) + bias)
+
+# Predict class labels
+def predict(X, weights, bias, threshold=0.5):
+    return (predict_prob(X, weights, bias) >= threshold).astype(int)
+
+# Train logistic regression using gradient descent
+def train_logistic_regression(X, y, lr=0.1, epochs=1000):
+    n_samples, n_features = X.shape
+    weights = np.zeros(n_features)
+    bias = 0
+
+    for _ in range(epochs):
+        linear_model = np.dot(X, weights) + bias
+        y_predicted = sigmoid(linear_model)
+
+        # Compute gradients
+        dw = (1 / n_samples) * np.dot(X.T, (y_predicted - y))
+        db = (1 / n_samples) * np.sum(y_predicted - y)
+
+        # Update parameters
+        weights -= lr * dw
+        bias -= lr * db
+
+    return weights, bias
+
+# Sample synthetic credit data: [Age, Income (k$), Loan Amount (k$), Credit History]
+X = np.array([
+    [25, 50, 10, 1],
+    [45, 80, 20, 0],
+    [35, 60, 15, 1],
+    [22, 40, 8, 0],
+    [52, 90, 30, 1],
+    [46, 75, 18, 0],
+    [28, 55, 9, 1],
+    [30, 65, 12, 1],
+    [50, 85, 25, 0],
+    [40, 70, 17, 1]
+])
+
+y = np.array([1, 0, 1, 0, 1, 0, 1, 1, 0, 1])
+
+# Normalize features (simple min-max scaling)
+X_min = X.min(axis=0)
+X_max = X.max(axis=0)
+X_norm = (X - X_min) / (X_max - X_min)
+
+# Split into train/test manually (70/30 split)
+split_idx = int(0.7 * len(X_norm))
+X_train, X_test = X_norm[:split_idx], X_norm[split_idx:]
+y_train, y_test = y[:split_idx], y[split_idx:]
+
+# Train model
+weights, bias = train_logistic_regression(X_train, y_train, lr=0.5, epochs=2000)
+
+# Predict on test set
+y_pred = predict(X_test, weights, bias)
+
+# Accuracy calculation
+accuracy = np.mean(y_pred == y_test)
+
+print("Weights:", weights)
+print("Bias:", bias)
+print("Test Predictions:", y_pred)
+print("Actual Labels   :", y_test)
+print(f"Test Accuracy: {accuracy*100:.2f}%")
+
