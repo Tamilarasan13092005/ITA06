@@ -1,0 +1,28 @@
+import numpy as np
+
+# Sample nonlinear data: y = x^2 + noise
+np.random.seed(0)
+X = np.linspace(-3, 3, 30)
+y = X**2 + np.random.randn(30) * 2
+
+# Prepare X for linear regression (add bias)
+X_linear = np.vstack([X, np.ones(len(X))]).T  # shape (n_samples, 2)
+
+# Linear Regression (Closed-form)
+theta_linear = np.linalg.inv(X_linear.T @ X_linear) @ X_linear.T @ y
+y_pred_linear = X_linear @ theta_linear
+
+# Polynomial Regression (degree 2)
+X_poly = np.vstack([X**2, X, np.ones(len(X))]).T
+theta_poly = np.linalg.inv(X_poly.T @ X_poly) @ X_poly.T @ y
+y_pred_poly = X_poly @ theta_poly
+
+# Mean Squared Error function
+def mse(y_true, y_pred):
+    return np.mean((y_true - y_pred)**2)
+
+print("Linear Regression coefficients (m, b):", theta_linear)
+print("Linear Regression MSE:", mse(y, y_pred_linear))
+
+print("\nPolynomial Regression coefficients (a, b, c):", theta_poly)
+print("Polynomial Regression MSE:", mse(y, y_pred_poly))
