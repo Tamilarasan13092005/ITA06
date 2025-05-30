@@ -1,0 +1,29 @@
+def find_s_algorithm(training_data):
+    # Step 1: Initialize hypothesis to most specific
+    hypothesis = None
+
+    for instance, label in training_data:
+        if label == "Yes":  # Only consider positive examples
+            if hypothesis is None:
+                hypothesis = instance.copy()
+            else:
+                for i in range(len(hypothesis)):
+                    if hypothesis[i] != instance[i]:
+                        hypothesis[i] = "?"
+    
+    return hypothesis
+
+# Sample Training Data
+# Format: ([Outlook, Temperature, Humidity, Wind], Label)
+training_data = [
+    (["Sunny", "Warm", "Normal", "Strong"], "Yes"),
+    (["Sunny", "Warm", "High", "Strong"], "Yes"),
+    (["Rainy", "Cold", "High", "Strong"], "No"),
+    (["Sunny", "Warm", "High", "Weak"], "Yes")
+]
+
+# Run the FIND-S algorithm
+final_hypothesis = find_s_algorithm(training_data)
+
+# Output the result
+print("Final Hypothesis:", final_hypothesis)
