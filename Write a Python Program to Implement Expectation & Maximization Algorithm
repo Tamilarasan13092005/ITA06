@@ -1,0 +1,59 @@
+import math
+import random
+
+# Probability density function for 1D Gaussian
+def gaussian_pdf(x, mean, std):
+    coef = 1 / (math.sqrt(2 * math.pi) * std)
+    exp_term = math.exp(-0.5 * ((x - mean) / std) ** 2)
+    return coef * exp_term
+
+# Sample 1D data (e.g., heights)
+data = [1.0, 1.2, 1.4, 5.0, 5.5, 5.8, 6.0, 6.2, 6.5, 6.8]
+
+# Initialize parameters
+k = 2  # number of Gaussian components
+means = [2.0, 6.0]
+stds = [1.0, 1.0]
+weights = [0.5, 0.5]
+
+def expectation(data, means, stds, weights):
+    responsibilities = []
+    for x in data:
+        resp = []
+        total = 0
+        for j in range(k):
+            p = weights[j] * gaussian_pdf(x, means[j], stds[j])
+            resp.append(p)
+            total += p
+        resp = [r / total for r in resp]
+        responsibilities.append(resp)
+    return responsibilities
+
+def maximization(data, responsibilities):
+    n_k = [sum(resp[j] for resp in responsibilities) for j in range(k)]
+    new_means = []
+    new_stds = []
+    new_weights = []
+    for j in range(k):
+        # Update means
+        mean = sum(responsibilities[i][j] * data[i] for i in range(len(data))) / n_k[j]
+        new_means.append(mean)
+        # Update std deviations
+        variance = sum(responsibilities[i][j] * (data[i] - mean) ** 2 for i in range(len(data))) / n_k[j]
+        new_stds.append(math.sqrt(variance))
+        # Update weights
+        new_weights.append(n_k[j] / len(data))
+    return new_means, new_stds, new_weights
+
+# EM algorithm
+max_iters = 20
+for iteration in range(max_iters):
+    # E-step
+    resp = expectation(data, means, stds, weights)
+    # M-step
+    means, stds, weights = maximization(data, resp)
+    print(f"Iteration {iteration+1}")
+    print("Means:", means)
+    print("Stds :", stds)
+    print("Weights:", weights)
+    print("-" * 30)
