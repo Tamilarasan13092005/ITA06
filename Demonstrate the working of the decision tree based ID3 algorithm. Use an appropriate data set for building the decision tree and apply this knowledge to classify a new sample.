@@ -1,0 +1,82 @@
+import math
+from collections import Counter
+
+def entropy(data):
+    labels = [row[-1] for row in data]
+    counts = Counter(labels)
+    total = len(labels)
+    return -sum((count/total) * math.log2(count/total) for count in counts.values())
+
+def info_gain(data, attr_index):
+    total_entropy = entropy(data)
+    attr_values = {}
+    for row in data:
+        key = row[attr_index]
+        attr_values.setdefault(key, []).append(row)
+    
+    weighted_entropy = sum((len(subset)/len(data)) * entropy(subset)
+                           for subset in attr_values.values())
+    return total_entropy - weighted_entropy
+
+def majority_class(data):
+    labels = [row[-1] for row in data]
+    return Counter(labels).most_common(1)[0][0]
+
+def id3(data, features):
+    labels = [row[-1] for row in data]
+    if labels.count(labels[0]) == len(labels):
+        return labels[0]
+    if not features:
+        return majority_class(data)
+
+    gains = [info_gain(data, i) for i in range(len(features))]
+    best = gains.index(max(gains))
+    best_feature = features[best]
+
+    tree = {best_feature: {}}
+    values = set(row[best] for row in data)
+
+    for val in values:
+        subset = [row[:best] + row[best+1:] for row in data if row[best] == val]
+        sub_features = features[:best] + features[best+1:]
+        tree[best_feature][val] = id3(subset, sub_features)
+
+    return tree
+
+def classify(tree, features, sample):
+    if type(tree) != dict:
+        return tree
+    attr = next(iter(tree))
+    i = features.index(attr)
+    val = sample[i]
+    subtree = tree[attr].get(val, "Unknown")
+    if isinstance(subtree, dict):
+        return classify(subtree, features, sample)
+    else:
+        return subtree
+
+# === Sample Dataset ===
+features = ["Outlook", "Temperature", "Humidity", "Wind"]
+dataset = [
+    ["Sunny", "Hot", "High", "Weak", "No"],
+    ["Sunny", "Hot", "High", "Strong", "No"],
+    ["Overcast", "Hot", "High", "Weak", "Yes"],
+    ["Rain", "Mild", "High", "Weak", "Yes"],
+    ["Rain", "Cool", "Normal", "Weak", "Yes"],
+    ["Rain", "Cool", "Normal", "Strong", "No"],
+    ["Overcast", "Cool", "Normal", "Strong", "Yes"],
+    ["Sunny", "Mild", "High", "Weak", "No"],
+    ["Sunny", "Cool", "Normal", "Weak", "Yes"],
+    ["Rain", "Mild", "Normal", "Weak", "Yes"]
+]
+
+# Build tree
+tree = id3(dataset, features)
+print("Decision Tree:")
+print(tree)
+
+# Classify a new sample
+sample = ["Rain", "Cool", "High", "Strong"]
+result = classify(tree, features, sample)
+print("\nNew Sample:", sample)
+print("Classified as:", result)
